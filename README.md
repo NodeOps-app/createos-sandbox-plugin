@@ -12,8 +12,8 @@ the plugin installation manager:
 jenkins-plugin-cli --plugins createos-sandbox
 ```
 
-To install a build that has not been released, download the `.hpi` from a
-[release](../../releases) and use **Manage Jenkins > Plugins > Advanced > Deploy Plugin**.
+Releases are published automatically through the Jenkins project's continuous delivery
+pipeline, so versions look like `3.v1a2b3c4d5e6f` rather than `1.2.3`.
 
 ## Requirements
 

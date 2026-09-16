@@ -54,13 +54,13 @@
 # all, and buys little: every rootfs built from it is destroyed after one build.
 FROM nodeops/sandbox:debian
 
-ARG JDK_URL=https://github.com/adoptium/temurin25-binaries/releases/download/jdk-25.0.4%2B7/OpenJDK25U-jdk_x64_linux_hotspot_25.0.4_7.tar.gz
-ARG JDK_SHA256=e58fcdcd637b25c03ca84cbbcefc70d11efb8f4b4cbd05decc9f661769d77f94
+ARG JDK_URL=https://github.com/adoptium/temurin25-binaries/releases/download/jdk-25.0.4.1%2B1/OpenJDK25U-jdk_x64_linux_hotspot_25.0.4.1_1.tar.gz
+ARG JDK_SHA256=dbb698396d478e7fa2b1e50f4103324b2a99b90569ee27c33f2261f9215cf41e
 
 ARG GEESEFS_VERSION=0.43.9
 
-ARG REMOTING_URL=https://repo.jenkins-ci.org/public/org/jenkins-ci/main/remoting/3355.3357.v931d3c992987/remoting-3355.3357.v931d3c992987.jar
-ARG REMOTING_SHA256=f643a61713b71f6605e7ed51996c62d85916a412b01b93829d7c995f38b390f1
+ARG REMOTING_URL=https://repo.jenkins-ci.org/public/org/jenkins-ci/main/remoting/3391.va_37fa_a_305d6d/remoting-3391.va_37fa_a_305d6d.jar
+ARG REMOTING_SHA256=d06ae9dfaf4aceaceb7619efec774c166950e88dd2a2763cfc8a30d69f3f8deb
 
 # curl: the launcher shells out to it to fetch agent.jar — it is load-bearing,
 # not a convenience. ca-certificates: without it that fetch fails TLS against
