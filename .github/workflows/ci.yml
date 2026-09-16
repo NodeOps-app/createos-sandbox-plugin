@@ -30,15 +30,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # 21 is the floor implied by pom's jenkins.version (2.479.3 supports 17 or 21).
+        # 21 is the floor implied by pom's jenkins.version (2.541.3 supports 17, 21 or 25).
         # 25 is the newest version the current LTS lines accept. Both must compile.
         java: ["21", "25"]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
 
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6
         with:
           distribution: temurin
           java-version: ${{ matrix.java }}
@@ -51,7 +51,7 @@ jobs:
 
       - name: Upload plugin
         if: matrix.java == '21' && github.event_name == 'push'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: createos-sandbox
           path: target/*.hpi

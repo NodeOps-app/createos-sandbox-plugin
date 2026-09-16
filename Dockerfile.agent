@@ -9,7 +9,7 @@
 # That was solving a problem Jenkins does not have. A controller does not require its
 # own exact remoting — jenkins.slaves.RemotingVersionInfo publishes an embedded version
 # AND a minimum supported version, and any agent at or above the minimum connects. The
-# pin below clears the floor for every controller from 2.479.3 through the current
+# pin below clears the floor for every controller from 2.541.3 through the current
 # LTS, so one rootfs serves all of them.
 #
 # What baking buys, and why it is worth a rebuild when the floor eventually rises:

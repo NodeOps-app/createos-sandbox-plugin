@@ -1,5 +1,6 @@
 .env
 target/
+work/
 *.class
 *.hpi
 *.jar

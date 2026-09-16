@@ -1,8 +1,8 @@
 /*
  * Build on ci.jenkins.io.
  *
- * JDK 21 is the floor: pom's jenkins.version is 2.479.3, whose Java support policy is
- * 17 or 21. JDK 25 covers the other end — the newest version current LTS lines accept.
+ * JDK 21 is the floor: pom's jenkins.version is 2.541.3, whose Java support policy is
+ * 17, 21 or 25. JDK 25 covers the other end — the newest version current LTS lines accept.
  * Building both proves the plugin compiles across the whole supported range rather than
  * only at the version whoever last touched it happened to have installed.
  */

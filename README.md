@@ -17,7 +17,7 @@ To install a build that has not been released, download the `.hpi` from a
 
 ## Requirements
 
-- Jenkins 2.479.3 or newer
+- Jenkins 2.541.3 or newer
 - A CreateOS account and API key
 - An agent root filesystem containing a JVM — see [Agent Template](#agent-template).
   The stock images do not have one.
@@ -370,7 +370,6 @@ controller's:
 |---|---|
 | LTS 2.555.1 (Apr 2026) / weekly 2.545 and later | **21 or 25** — Java 17 is no longer supported |
 | LTS 2.541.1 / weekly 2.534 | 17, 21, or 25 |
-| LTS 2.479.1 / weekly 2.463 | 17 or 21 |
 
 | Piece | Constraint |
 |---|---|

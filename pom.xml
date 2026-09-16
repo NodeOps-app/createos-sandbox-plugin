@@ -16,7 +16,7 @@
 
   <name>CreateOS Sandbox</name>
   <description>Provision ephemeral CreateOS Sandbox microVMs as Jenkins build agents.</description>
-  <url>https://github.com/NodeOps-app/createos-sandbox-plugin</url>
+  <url>https://github.com/jenkinsci/createos-sandbox-plugin</url>
 
   <licenses>
     <license>
@@ -35,14 +35,14 @@
   </developers>
 
   <scm>
-    <connection>scm:git:https://github.com/NodeOps-app/createos-sandbox-plugin.git</connection>
-    <developerConnection>scm:git:git@github.com:NodeOps-app/createos-sandbox-plugin.git</developerConnection>
+    <connection>scm:git:https://github.com/jenkinsci/createos-sandbox-plugin.git</connection>
+    <developerConnection>scm:git:git@github.com:jenkinsci/createos-sandbox-plugin.git</developerConnection>
     <tag>HEAD</tag>
-    <url>https://github.com/NodeOps-app/createos-sandbox-plugin</url>
+    <url>https://github.com/jenkinsci/createos-sandbox-plugin</url>
   </scm>
 
   <properties>
-    <jenkins.version>2.479.3</jenkins.version>
+    <jenkins.version>2.541.3</jenkins.version>
     <checkstyle.version>14.1.0</checkstyle.version>
     <google-java-format.version>1.28.0</google-java-format.version>
     <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
@@ -54,8 +54,8 @@
     <dependencies>
       <dependency>
         <groupId>io.jenkins.tools.bom</groupId>
-        <artifactId>bom-2.479.x</artifactId>
-        <version>5054.v620b_5d2b_d5e6</version>
+        <artifactId>bom-2.541.x</artifactId>
+        <version>7002.v028a_3607ddc8</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
