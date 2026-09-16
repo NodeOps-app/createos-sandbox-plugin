@@ -34,7 +34,7 @@ jobs:
         # 25 is the newest version the current LTS lines accept. Both must compile.
         java: ["21", "25"]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
 
