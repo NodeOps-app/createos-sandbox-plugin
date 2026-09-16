@@ -7,6 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import hudson.util.FormValidation;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
 class SandboxTemplateTest {
 
@@ -57,8 +59,11 @@ class SandboxTemplateTest {
     assertEquals(SandboxTemplate.LAUNCH_METHOD_INBOUND, template.getLaunchMethod());
   }
 
+  // Needs a real Jenkins: doCheckLaunchMethod asserts ADMINISTER, which the Jenkins
+  // Security Scan requires on every form-validation endpoint.
   @Test
-  void launchMethodDescriptorRejectsUnknownValues() {
+  @WithJenkins
+  void launchMethodDescriptorRejectsUnknownValues(JenkinsRule r) {
     SandboxTemplate.DescriptorImpl descriptor = new SandboxTemplate.DescriptorImpl();
 
     assertEquals(FormValidation.Kind.OK, descriptor.doCheckLaunchMethod("ssh").kind);

@@ -33,6 +33,7 @@ import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.verb.POST;
 
 /** Jenkins cloud implementation that provisions ephemeral CreateOS sandbox agents. */
 public class CreateOSCloud extends Cloud {
@@ -336,6 +337,7 @@ public class CreateOSCloud extends Cloud {
     }
 
     /** Returns the secret-text credentials available to Jenkins administrators. */
+    @POST
     public ListBoxModel doFillCredentialsIdItems() {
       if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
         return new StandardListBoxModel();
@@ -351,7 +353,9 @@ public class CreateOSCloud extends Cloud {
     }
 
     /** Validates that the configured API endpoint is an HTTP URL. */
+    @POST
     public FormValidation doCheckApiUrl(@QueryParameter String value) {
+      Jenkins.get().checkPermission(Jenkins.ADMINISTER);
       if (value == null || value.isBlank()) {
         return FormValidation.error("API URL is required");
       }
@@ -362,10 +366,13 @@ public class CreateOSCloud extends Cloud {
     }
 
     /** Validates access to the configured CreateOS credential. */
+    @POST
     public FormValidation doTestConnection(
         @QueryParameter String apiUrl, @QueryParameter String credentialsId) {
+      // Outside the try: an AccessDeniedException must propagate as a 403, not be caught
+      // below and rendered back to the caller as an ordinary form-validation error.
+      Jenkins.get().checkPermission(Jenkins.ADMINISTER);
       try {
-        Jenkins.get().checkPermission(Jenkins.ADMINISTER);
         StringCredentials cred =
             CredentialsMatchers.firstOrNull(
                 CredentialsProvider.lookupCredentialsInItemGroup(

@@ -18,6 +18,7 @@ import jenkins.model.Jenkins;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.verb.POST;
 
 /**
  * Configuration template for a CreateOS Sandbox agent.
@@ -231,7 +232,9 @@ public class SandboxTemplate extends AbstractDescribableImpl<SandboxTemplate>
     }
 
     /** Validates that a Jenkins label was provided. */
+    @POST
     public FormValidation doCheckLabel(@QueryParameter String value) {
+      Jenkins.get().checkPermission(Jenkins.ADMINISTER);
       if (value == null || value.isBlank()) {
         return FormValidation.error("Label is required");
       }
@@ -239,7 +242,9 @@ public class SandboxTemplate extends AbstractDescribableImpl<SandboxTemplate>
     }
 
     /** Validates that a CreateOS sandbox shape was provided. */
+    @POST
     public FormValidation doCheckShape(@QueryParameter String value) {
+      Jenkins.get().checkPermission(Jenkins.ADMINISTER);
       if (value == null || value.isBlank()) {
         return FormValidation.error("Shape is required (e.g. s-1vcpu-1gb)");
       }
@@ -247,7 +252,9 @@ public class SandboxTemplate extends AbstractDescribableImpl<SandboxTemplate>
     }
 
     /** Validates that a CreateOS root filesystem was provided. */
+    @POST
     public FormValidation doCheckRootfs(@QueryParameter String value) {
+      Jenkins.get().checkPermission(Jenkins.ADMINISTER);
       if (value == null || value.isBlank()) {
         return FormValidation.error("Root filesystem is required (e.g. devbox:1)");
       }
@@ -271,7 +278,9 @@ public class SandboxTemplate extends AbstractDescribableImpl<SandboxTemplate>
     }
 
     /** Validates that the launch method is one of the supported transports. */
+    @POST
     public FormValidation doCheckLaunchMethod(@QueryParameter String value) {
+      Jenkins.get().checkPermission(Jenkins.ADMINISTER);
       try {
         validateLaunchMethod(value);
         return FormValidation.ok();
@@ -281,6 +290,7 @@ public class SandboxTemplate extends AbstractDescribableImpl<SandboxTemplate>
     }
 
     /** Returns SSH credentials available to Jenkins administrators. */
+    @POST
     public ListBoxModel doFillSshCredentialsIdItems(@QueryParameter String sshCredentialsId) {
       if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
         return new StandardListBoxModel().includeCurrentValue(sshCredentialsId);
@@ -297,7 +307,9 @@ public class SandboxTemplate extends AbstractDescribableImpl<SandboxTemplate>
     }
 
     /** Validates the optional public key used for SSH launch. */
+    @POST
     public FormValidation doCheckSshPublicKey(@QueryParameter String value) {
+      Jenkins.get().checkPermission(Jenkins.ADMINISTER);
       if (value == null || value.isBlank()) {
         return FormValidation.ok();
       }
