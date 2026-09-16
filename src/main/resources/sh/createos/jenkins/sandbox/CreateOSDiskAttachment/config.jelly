@@ -1,0 +1,26 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core"
+         xmlns:f="/lib/form">
+
+    <f:entry title="ID" field="id"
+             description="ID or name of a disk that already exists in CreateOS. Create the disk in CreateOS first. This field does not create a new disk.">
+        <f:textbox />
+    </f:entry>
+
+    <f:entry title="Mount Path" field="mountPath"
+             description="Absolute mount path inside the sandbox.">
+        <f:textbox />
+    </f:entry>
+
+    <f:entry title="Sub Path" field="subPath"
+             description="Optional prefix inside the disk bucket.">
+        <f:textbox />
+    </f:entry>
+
+    <f:entry>
+        <div align="right">
+            <f:repeatableDeleteButton />
+        </div>
+    </f:entry>
+
+</j:jelly>

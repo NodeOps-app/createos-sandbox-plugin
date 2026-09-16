@@ -1,0 +1,155 @@
+# Jenkins inbound-agent rootfs for CreateOS Sandbox.
+#
+# Build/refresh with the CreateOS CLI (see README "Agent Template").
+#
+# agent.jar IS baked in, pinned and checksummed. This reverses the earlier design,
+# which fetched it from $JENKINS_URL/jnlpJars/agent.jar on every launch to stay
+# version-matched to the controller.
+#
+# That was solving a problem Jenkins does not have. A controller does not require its
+# own exact remoting — jenkins.slaves.RemotingVersionInfo publishes an embedded version
+# AND a minimum supported version, and any agent at or above the minimum connects. The
+# pin below clears the floor for every controller from 2.479.3 through the current
+# LTS, so one rootfs serves all of them.
+#
+# What baking buys, and why it is worth a rebuild when the floor eventually rises:
+# the image is a fixed, auditable artefact. Nothing is fetched at agent start, so a
+# build cannot be changed by whatever a controller happened to serve, and the image
+# hash fully describes what will run. That is the property an enterprise needs; the
+# saved download is incidental.
+#
+# The failure mode is loud. Raise the floor above this pin and the agent is rejected
+# during the connect handshake, which CreateOSLauncher already surfaces by dumping
+# agent.log before destroying the sandbox — not a silent wrong-version run.
+#
+# Temurin, not Oracle: download.oracle.com/java/21/archive/ 404s as soon as a
+# patch release rotates out, which silently breaks template rebuilds. Adoptium
+# keeps every release and publishes a checksum for each.
+#
+# Java 25 and not 21: Jenkins' Java support policy applies to "all components of
+# the Jenkins system, including the Jenkins controller, all types of agents, CLI
+# clients" — the agent JVM is governed by the same table as the controller. LTS
+# 2.555.1 / weekly 2.545 narrowed that table to Java 21 or 25 and DROPPED Java 17,
+# so on any current controller 17 is not merely old, it will refuse to run. 25 is
+# the newest LTS in that table. Java 21 is still supported and is the fallback if
+# a build toolchain is not yet 25-clean.
+#
+# Bump JDK_URL and JDK_SHA256 together — the checksum is the only thing standing
+# between a mirror and this rootfs.
+#
+# JDK and not JRE: the agent only needs a JRE, but the builds it runs generally
+# do not (javac, jstack, keytool). ~180 MiB for a rootfs that is thrown away
+# after one build is not worth the split.
+# Not a free choice. The CreateOS template builder accepts only nodeops/sandbox:debian
+# or nodeops/sandbox:alpine as a FROM base and rejects anything else.
+# The stock rootfs names (debian:13, devbox:1, ubuntu:26.04) are bootable with
+# `--rootfs` and DO carry geesefs, but they are a different artifact and cannot be
+# a FROM base — which is why the geesefs block below cannot be dropped by switching
+# base. Alpine is the only alternative and is ruled out (musl + DNS).
+#
+# Deliberately an unpinned tag, and the only version in this file Renovate does not
+# manage. The allowlist above compares the base by exact string, so `nodeops/sandbox
+# :debian@sha256:…` is not the same value as `nodeops/sandbox:debian` and the template
+# build would be rejected. Digest pinning here therefore costs the ability to build at
+# all, and buys little: every rootfs built from it is destroyed after one build.
+FROM nodeops/sandbox:debian
+
+ARG JDK_URL=https://github.com/adoptium/temurin25-binaries/releases/download/jdk-25.0.4%2B7/OpenJDK25U-jdk_x64_linux_hotspot_25.0.4_7.tar.gz
+ARG JDK_SHA256=e58fcdcd637b25c03ca84cbbcefc70d11efb8f4b4cbd05decc9f661769d77f94
+
+ARG GEESEFS_VERSION=0.43.9
+
+ARG REMOTING_URL=https://repo.jenkins-ci.org/public/org/jenkins-ci/main/remoting/3355.3357.v931d3c992987/remoting-3355.3357.v931d3c992987.jar
+ARG REMOTING_SHA256=f643a61713b71f6605e7ed51996c62d85916a412b01b93829d7c995f38b390f1
+
+# curl: the launcher shells out to it to fetch agent.jar — it is load-bearing,
+# not a convenience. ca-certificates: without it that fetch fails TLS against
+# the controller's HTTPS ingress URL. git/unzip/zip/wget: the long tail of `sh`
+# steps in a Jenkins job (checkout scm, archiveArtifacts, stash).
+#
+# fuse3 backs the geesefs mounts below; nodejs/npm are there so Node builds work
+# without installing a toolchain on every agent.
+#
+# fontconfig + fonts-dejavu-core are for a Jenkins CONTROLLER run on this same image. A Jenkins controller on a fontless base dies during boot with
+# "RuntimeException: Fontconfig head is null" — AWT initialises regardless of
+# -Djava.awt.headless=true and needs at least one real font. ~3 MiB to make one
+# image serve both roles, which is the point: a JVM problem cannot then appear
+# on the controller and not the agent.
+RUN apt-get update -qq \
+ && apt-get install -y --no-install-recommends \
+      ca-certificates curl wget git unzip zip \
+      fuse3 nodejs npm \
+      fontconfig fonts-dejavu-core \
+ && rm -rf /var/lib/apt/lists/*
+
+# geesefs mounts the S3 disks that SandboxTemplate's disk attachments request.
+#
+# Unlike the JDK and the remoting jar below, this download is NOT checksum-verified:
+# the project publishes no .sha256 beside the release asset (checked for v0.43.7 —
+# 404). Hashing whatever the network returned and pinning that would authenticate
+# nothing, which is why every other checksum in this file comes from the publisher.
+# Pin it here the moment upstream publishes one.
+#
+# This is NOT redundant with the base image, however it may look. The published
+# nodeops/sandbox:debian tag that the template builder resolves does not carry
+# geesefs — verified by deleting this block, at which point `command -v geesefs`
+# failed the build. The stock rootfs images bake it in; the template base does not,
+# so a custom template must supply its own, or the guest agent gives up with
+# "geesefs binary not found in rootfs" and the mount silently never appears.
+RUN ARCH=$(dpkg --print-architecture) && \
+    case "$ARCH" in \
+        amd64) GEESE_ARCH=linux-amd64 ;; \
+        arm64) GEESE_ARCH=linux-arm64 ;; \
+        *) echo "unsupported arch: $ARCH" >&2; exit 1 ;; \
+    esac && \
+    curl -fsSL -o /usr/local/bin/geesefs \
+        "https://github.com/yandex-cloud/geesefs/releases/download/v${GEESEFS_VERSION}/geesefs-${GEESE_ARCH}" && \
+    chmod 0755 /usr/local/bin/geesefs && \
+    /usr/local/bin/geesefs --version
+
+# src.zip is 51 MiB of Java standard-library SOURCE, shipped so an IDE can step into
+# the JDK. Nothing on a build agent reads it. Size is not free here: a host that does
+# not already hold this template fetches the whole rootfs before the VM boots, so a
+# smaller image measurably shortens cold starts.
+#
+# Deleted in the same layer it arrives in; a later `rm` would leave it in the image.
+# src.zip is already-compressed data, so it costs the same on the wire as on disk —
+# unlike the text in this image, which the zstd rootfs transfer squeezes hard.
+RUN curl -fsSL -o /tmp/jdk.tar.gz "${JDK_URL}" \
+ && echo "${JDK_SHA256}  /tmp/jdk.tar.gz" | sha256sum -c - \
+ && mkdir -p /opt/java \
+ && tar -xzf /tmp/jdk.tar.gz -C /opt/java --strip-components=1 \
+ && rm /tmp/jdk.tar.gz \
+ && rm -f /opt/java/lib/src.zip \
+ && rm -rf /opt/java/man \
+ && /opt/java/bin/java -version
+
+# Pinned remoting, verified against the checksum the Maven repository publishes.
+# CreateOSLauncher copies this to the workspace instead of downloading when present,
+# and falls back to the controller for a rootfs built before this existed.
+RUN mkdir -p /opt/jenkins \
+ && curl -fsSL -o /opt/jenkins/agent.jar "${REMOTING_URL}" \
+ && echo "${REMOTING_SHA256}  /opt/jenkins/agent.jar" | sha256sum -c - \
+ && chmod 0644 /opt/jenkins/agent.jar
+
+ENV JAVA_HOME=/opt/java
+ENV PATH=/opt/java/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# These ENVs do NOT reach the agent. Verified on a live sandbox: the exec API the
+# launcher uses spawns processes with its own environment, and `echo $JAVA_HOME`
+# there comes back empty. Since build steps are children of the agent JVM, they
+# inherit that same bare environment — so the ENV lines above only serve tools
+# that read the image config directly, and everything the agent actually runs
+# depends on the symlinks below.
+#
+# The whole bin/ and not just `java`: `java` alone is enough to start agent.jar,
+# which is what made this easy to miss — the agent connects, the build goes green,
+# and then some later job calls `javac`, `jar` or `keytool` and cannot find it.
+# Maven and Gradle both fall back to `java` on PATH when JAVA_HOME is unset, so
+# linking the toolchain into a default PATH directory covers them too.
+RUN for b in /opt/java/bin/*; do ln -sf "$b" "/usr/bin/$(basename "$b")"; done \
+ && javac -version && java -version
+
+# remoteFs in the cloud's Sandbox Template config. Pre-created so the agent's
+# very first write does not race a mkdir.
+RUN mkdir -p /home/jenkins

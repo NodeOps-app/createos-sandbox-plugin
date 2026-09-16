@@ -1,0 +1,49 @@
+# Cuts a GitHub Release from a tag and attaches the .hpi.
+#
+# This does NOT publish to the Jenkins update center. Doing that requires an upload to
+# repo.jenkins-ci.org, which needs credentials this workflow deliberately does not hold —
+# see the release section of README.md. This exists so that a tag always has a downloadable,
+# reproducible artifact built by CI rather than from someone's laptop.
+#
+# The tag must match the version in pom.xml. The guard below fails the run rather than
+# publishing a v0.0.2 release containing a 0.0.1 artifact.
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Tag matches pom version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          pom="$(mvn -B -ntp -q help:evaluate -Dexpression=project.version -DforceStdout)"
+          if [ "${TAG#v}" != "$pom" ]; then
+            echo "tag ${TAG} does not match pom version ${pom}" >&2
+            exit 1
+          fi
+
+      - name: Build
+        run: mvn -B -ntp clean verify
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: target/*.hpi
+          generate_release_notes: true

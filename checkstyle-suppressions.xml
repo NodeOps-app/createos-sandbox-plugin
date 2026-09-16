@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<!DOCTYPE suppressions PUBLIC
+    "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+    "https://checkstyle.org/dtds/suppressions_1_2.dtd">
+<suppressions>
+  <!--
+    CreateOS is the product's canonical spelling.
+
+    GoogleMethodName arrived in Checkstyle 13.10.0 and folds the old MethodName and
+    AbbreviationAsWordInName rules into one check, so suppressing only the latter stopped
+    being enough: getCreateOSCloud passed under 13.9.0 and fails under 13.10.0 for the
+    same "OSC" that was already excused here.
+  -->
+  <suppress
+      checks="AbbreviationAsWordInName|GoogleMethodName"
+      files="CreateOS(ApiClient|Cloud|Computer|DeclarativeAgent|DiskAttachment|DownloadStep|Launcher|PipelineSupport|QueueListener|SandboxContext|SandboxRequest|SandboxStep|ShStep|Slave|StepSupport|TemplateOverrides|TunnelProxy|UploadStep)(Test)?\.java" />
+</suppressions>

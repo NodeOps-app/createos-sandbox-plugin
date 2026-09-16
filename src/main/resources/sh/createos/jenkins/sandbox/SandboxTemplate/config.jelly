@@ -1,0 +1,75 @@
+<?jelly escape-by-default='true'?>
+<!--
+    Config form for a Sandbox Template.
+    Shown inside the CreateOS Cloud config as a repeatable block.
+    Users can add multiple templates (like PodTemplates in Kubernetes plugin).
+-->
+<j:jelly xmlns:j="jelly:core"
+         xmlns:f="/lib/form">
+
+    <f:entry title="Label" field="label"
+             description="Jenkins label for matching jobs (e.g. 'createos' or 'nodejs')">
+        <f:textbox />
+    </f:entry>
+
+    <f:entry title="Shape" field="shape"
+             description="Sandbox VM size (e.g. s-1vcpu-1gb, s-4vcpu-4gb)">
+        <f:textbox default="s-1vcpu-1gb" />
+    </f:entry>
+
+    <f:entry title="Root Filesystem" field="rootfs"
+             description="Base image for the sandbox (e.g. devbox:1, ubuntu:22.04)">
+        <f:textbox default="devbox:1" />
+    </f:entry>
+
+    <f:entry title="Remote FS" field="remoteFs"
+             description="Workspace directory inside the sandbox">
+        <f:textbox default="/home/jenkins" />
+    </f:entry>
+
+    <f:entry title="Launch Method" field="launchMethod"
+             description="Inbound WebSocket keeps the existing behavior. SSH connects through a CreateOS tunnel to sandbox port 22.">
+        <f:select />
+    </f:entry>
+
+    <f:entry title="SSH Credentials" field="sshCredentialsId"
+             description="Jenkins SSH private key credential used only when Launch Method is SSH. The username must exist in the sandbox root filesystem.">
+        <f:select />
+    </f:entry>
+
+    <f:entry title="SSH Public Key" field="sshPublicKey"
+             description="Public key matching the SSH credential. Injected into authorized_keys before sshd starts.">
+        <f:textarea />
+    </f:entry>
+
+    <f:entry field="allowPipelineOverrides"
+             description="When disabled, Jenkinsfiles may still select this template by label, but may not inherit from it and override shape, rootfs, remoteFs, networks, disks, or region.">
+        <f:checkbox title="Allow Pipeline-defined Overrides" default="true" />
+    </f:entry>
+
+    <f:entry title="Region" field="region"
+             description="Optional CreateOS region. Leave empty to use the API default.">
+        <f:textbox />
+    </f:entry>
+
+    <f:entry title="Root Disk Size (MiB)" field="diskMiB"
+             description="Optional root disk size override. 0 uses the shape default.">
+        <f:number default="0" min="0" />
+    </f:entry>
+
+    <f:entry title="Private Networks" field="networks"
+             description="Existing CreateOS network ids or names, separated by commas or new lines.">
+        <f:textarea />
+    </f:entry>
+
+    <f:entry title="Disks">
+        <f:repeatableProperty field="disks" />
+    </f:entry>
+
+    <f:entry>
+        <div align="right">
+            <f:repeatableDeleteButton />
+        </div>
+    </f:entry>
+
+</j:jelly>
